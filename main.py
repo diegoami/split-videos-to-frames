@@ -20,20 +20,22 @@ def main():
     if (cap.isOpened() == False):
         print('Cap is not open')
 
+    finished = False
+    totsec = 0
     # cap opened successfully
-    while(cap.isOpened()):
-
+    while not finished:
+        cap.set(cv2.CAP_PROP_POS_MSEC, totsec * 1000)
+        hasFrames, image = cap.read()
         # capture each frame
         ret, frame = cap.read()
-        if(ret == True):
+        if (hasFrames):
 
             # Save frame as a jpg file
-            name = 'frame' + str(current_frame) + '.jpg'
-            print(f'Creating: {name}')
+            name = 'frame' + str(totsec) + '.jpg'
             cv2.imwrite(os.path.join(path_to_save, name), frame)
 
             # keep track of how many images you end up with
-            current_frame += 1
+            totsec += 1
         
         else:
             break
