@@ -3,14 +3,15 @@ import os
 import yaml
 import argparse
 from pathlib import Path
-def do_split(source, dest_folder):
-    source_stem = Path(source).stem
+def do_split(video_source, video_dest_folder):
+    print(f"Splitting {video_source} to {video_dest_folder}")
+    source_stem = Path(video_source).stem
 
     # get file path for desired video and where to save frames locally
-    cap = cv2.VideoCapture(source)
-    path_to_save = os.path.abspath(dest_folder)
+    cap = cv2.VideoCapture(video_source)
+    path_to_save = os.path.abspath(video_dest_folder)
 
-    os.makedirs(dest_folder, exist_ok=True)
+    os.makedirs(video_dest_folder, exist_ok=True)
     if (cap.isOpened() == False):
         print('Cap is not open')
 
@@ -48,6 +49,12 @@ if __name__ == '__main__':
     else:
         with open(args.config, 'r') as confhandle:
             conf_info = yaml.safe_load(confhandle)
-            source = conf_info["source"]
+            source_folder = conf_info["source_folder"]
             dest_folder = conf_info["dest_folder"]
-            do_split(source, dest_folder)
+            #directory_source = os.fsencode(source_folder)
+
+            for video_source in os.listdir(source_folder):
+                dest_folder_ending = Path(video_source).stem
+                video_dest_folder = os.path.join(dest_folder, dest_folder_ending)
+                video_source_full_path = os.path.join(source_folder, video_source)
+                do_split(video_source_full_path, video_dest_folder)
