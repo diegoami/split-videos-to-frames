@@ -1,3 +1,5 @@
 source_folder: "/media/diego/One Touch/videos/PLNP_nRm4k4jdohxa0vGM1-GO7IajdO44_/"
-dest_folder: "/media/diego/One Touch/frames/PLNP_nRm4k4jdohxa0vGM1-GO7IajdO44_/"
+dest_folder: "/media/diego/One Touch/frames_640_360/PLNP_nRm4k4jdohxa0vGM1-GO7IajdO44_/"
+width: 640
+height: 360
 
