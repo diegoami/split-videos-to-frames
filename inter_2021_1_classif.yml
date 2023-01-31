@@ -1,0 +1,7 @@
+source_folder: "/media/diego/One Touch/videos/PLNP_nRm4k4jccuciOKk9YA_LEjqqLO3BX/"
+dest_folder: "/media/diego/One Touch/frames_160_90/PLNP_nRm4k4jccuciOKk9YA_LEjqqLO3BX/"
+width: 160
+height: 90
+probability: 0.001
+grayscale: True
+
