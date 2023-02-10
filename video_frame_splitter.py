@@ -16,7 +16,24 @@ def get_length(cap):
 
 def get_distance_from_extremes(current, duration):
     return min(current, duration-current)*2/duration
-def do_split(video_source, video_dest_folder, width, height, probability, grayscale, clip_rect):
+
+def do_split(video_source, video_dest_folder, conf_info):
+    """
+    This function do_split is used to split a video source into frames and save those frames as image files in a specified destination folder. The function takes in three arguments: video_source which is the path to the video file, video_dest_folder which is the folder to save the images in, and conf_info which is a dictionary that contains configuration information such as the desired frame size, whether to convert the images to grayscale, and how many frames to keep.
+    The function first sets default values for the width, height, resize factor, probability of capturing a frame, grayscale flag, clip rect, and how many frames to keep using the get method of the conf_info dictionary. Then, the function creates a folder at the specified destination, opens the video source using OpenCV's cv2.VideoCapture method, and splits the video into frames by looping through the video and saving a frame every second. The frame is saved as an image file in the destination folder with the name formatted as the video source's stem plus the hour, minute, and second of the frame.
+    The function also implements a probability calculation to determine whether a frame should be saved or not based on the current time in the video and the duration of the video. If the probability calculation passes, the frame is processed by resizing and converting it to grayscale if specified in the configuration information, and then saved to the destination folder.
+    The function returns the first how_many and last how_many frames.
+    """
+
+    width = conf_info.get("width", None)
+    height = conf_info.get("height", None)
+    resize_factor = conf_info.get("resize_factor", 1)
+
+    probability = conf_info.get("probability", 1)
+    grayscale = conf_info.get("grayscale", False)
+    clip_rect = conf_info.get("cliprect", None)
+    how_many = conf_info.get("how_many", 1)
+
     print(f"Splitting {video_source} to {video_dest_folder}")
     source_stem = Path(video_source).stem
 
@@ -32,8 +49,8 @@ def do_split(video_source, video_dest_folder, width, height, probability, graysc
     finished = False
     totsec = 0
     # cap opened successfully
-    first_img, last_img = None, None
-
+    first_imgs, last_imgs = None, None
+    all_imgs = []
     while not finished:
 
         flag_img = random.rand()
@@ -57,18 +74,24 @@ def do_split(video_source, video_dest_folder, width, height, probability, graysc
                 name = source_stem + '_' + frame_str + '.jpg'
                 if width and height:
                     image = cv2.resize(image, (width, height))
+                if clip_rect:
+                    new_image = image[clip_rect["top"]:clip_rect["bottom"], clip_rect["left"]:clip_rect["right"]]
+                    image = new_image
                 if grayscale:
                     image = cv2.cvtColor(image , cv2.COLOR_BGR2GRAY)
-                if clip_rect:
-                    image = image[clip_rect["top"]:clip_rect["bottom"], clip_rect["left"]:clip_rect["right"],   ]
 
+                if resize_factor:
+                    new_width = int(image.shape[1] * resize_factor)
+                    new_height = int(image.shape[0] * resize_factor)
+                    print(image.shape)
+                    dim = (new_width, new_height)
+                    new_image = cv2.resize(image, dim)
+                    image = new_image
                 full_path = os.path.join(path_to_save, name)
                 print(f"Saving image to {full_path}")
 
                 cv2.imwrite(full_path, image)
-                if first_img is None:
-                    first_img = full_path
-                last_img = full_path
+                all_imgs.append(full_path)
                 # keep track of how many images you end up with
             else:
                 finished = True
@@ -77,7 +100,7 @@ def do_split(video_source, video_dest_folder, width, height, probability, graysc
     # release capture
     cap.release()
     print('done')
-    return first_img, last_img
+    return all_imgs[:how_many] + all_imgs[-how_many:]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -90,20 +113,16 @@ if __name__ == '__main__':
             conf_info = yaml.safe_load(confhandle)
             source_folder = conf_info["source_folder"]
             dest_folder = conf_info["dest_folder"]
-            width = conf_info.get("width", None)
-            height = conf_info.get("height", None)
-            probability = conf_info.get("probability", 1)
-            grayscale = conf_info.get("grayscale", False)
-            cliprect = conf_info.get("cliprect", None)
             first_last_imgdir = conf_info.get("first_last_imgdir", None)
+
 
             for video_source in os.listdir(source_folder):
                 dest_folder_ending = Path(video_source).stem
                 video_dest_folder = os.path.join(dest_folder, dest_folder_ending)
                 video_source_full_path = os.path.join(source_folder, video_source)
-                first_img, last_img = do_split(video_source_full_path, video_dest_folder, width, height, probability, grayscale, cliprect)
+                imgs  = do_split(video_source_full_path, video_dest_folder, conf_info)
                 if first_last_imgdir:
                     os.makedirs(first_last_imgdir, exist_ok=True)
-                    shutil.copy(first_img, first_last_imgdir)
-                    shutil.copy(last_img, first_last_imgdir)
+                    for img in imgs:
+                        shutil.copy(img, first_last_imgdir)
 
