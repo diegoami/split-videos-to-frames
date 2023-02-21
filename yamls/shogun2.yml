@@ -1,0 +1,7 @@
+source_folder: "/media/diego/One Touch/videos/PLNP_nRm4k4jc2Foht-lZUz4C0ea7pMx3o/"
+dest_folder: "/media/diego/One Touch/frames_dates_test/PLNP_nRm4k4jc2Foht-lZUz4C0ea7pMx3o/1/"
+probability: 0.01
+how_many: 2
+start: 0
+end: 1000
+first_last_imgdir: "/media/diego/One Touch/extreme_dates_test/PLNP_nRm4k4jc2Foht-lZUz4C0ea7pMx3o/1/"
