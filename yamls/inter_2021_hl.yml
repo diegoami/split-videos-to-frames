@@ -5,8 +5,8 @@ how_many: 5
 start: 0
 end: 1000
 first_last_imgdir: "/media/diego/One Touch/extreme_dates_test/PLNP_nRm4k4jfbluxHphX4EERMz9HWCDk4/3/"
-input_dir: "/media/diego/One Touch/frames_dates_test/PLNP_nRm4k4jfbluxHphX4EERMz9HWCDk4/3/2_0jU5DlvLjTE"
-contours_dir: "/media/diego/One Touch/contours/PLNP_nRm4k4jfbluxHphX4EERMz9HWCDk4/3/2_0jU5DlvLjTE/"
+input_dir: "/media/diego/One Touch/frames_dates_test/PLNP_nRm4k4jfbluxHphX4EERMz9HWCDk4/3/3_NeRtLnbyujk/"
+contours_dir: "/media/diego/One Touch/contours/PLNP_nRm4k4jfbluxHphX4EERMz9HWCDk4/3/3_NeRtLnbyujk/"
 grayscale: True
 resize_factor: 3
 cliprect:
