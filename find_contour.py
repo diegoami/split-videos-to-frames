@@ -35,16 +35,19 @@ def get_rects_to_checks(vertices):
 def process_rect_map(rect_map):
     lx = 0
     times_strs = []
-    first_start = None
+    first_start = False
+    first_scene = False
     keys = sorted(rect_map.keys())
     first_index, last_index = 0, len(keys)-1
     for index, key in enumerate(keys):
         xx = rect_map[key]
         if index != first_index and index != last_index and xx == -1:
             continue
-        if xx > lx+ 5 or not first_start:
+        if lx == 0 or xx > lx+ 5 or not first_start:
             file_name = key
-            first_start = True
+            if not first_start:
+                first_start = True
+
             basename_filename = os.path.basename(file_name)
             basename_filename_no_ext = os.path.splitext(basename_filename)[0]
             times = basename_filename_no_ext.split('_')[-3:]
@@ -57,10 +60,8 @@ def process_rect_map(rect_map):
             print(times_str, xx, lx)
 
             times_strs.append(times_str)
-
-        if first_start:
+        if xx != -1:
             lx = xx
-
     return times_strs
 
 def retrieve_countrs_intervals(dir):
