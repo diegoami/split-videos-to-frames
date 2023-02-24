@@ -21,11 +21,54 @@ def all_plausible_rectangles (x,y,w,h):
     return all_rectangles
 
 
+def get_rects_to_checks(vertices):
+    left_most, right_most = 0, 3000
+    for vertex in vertices:
+        x, y = vertex[0]
+        if x < left_most:
+            left_most = x
+        if x > right_most:
+            right_most = x
+    rects_to_check = [(left_most,7,8,26),(right_most-8,7,8,26)]
+    return rects_to_check
+
+def process_rect_map(rect_map):
+    lx = 0
+    times_strs = []
+    first_start = None
+    keys = sorted(rect_map.keys())
+    first_index, last_index = 0, len(keys)-1
+    for index, key in enumerate(keys):
+        xx = rect_map[key]
+        if index != first_index and index != last_index and xx == -1:
+            continue
+        if xx > lx+ 5 or not first_start:
+            file_name = key
+            first_start = True
+            basename_filename = os.path.basename(file_name)
+            basename_filename_no_ext = os.path.splitext(basename_filename)[0]
+            times = basename_filename_no_ext.split('_')[-3:]
+            file_index = int(basename_filename_no_ext.split('_')[0])
+
+            if times[0] == '00':
+                times_str = f'{times[1]}:{times[2]}'
+            else:
+                times_str = f'{times[0]}:{times[1]}:{times[2]}'
+            print(times_str, xx, lx)
+
+            times_strs.append(times_str)
+
+        if first_start:
+            lx = xx
+
+    return times_strs
+
 def retrieve_countrs_intervals(dir):
 
     rect_map = {}
-    found_intervals = []
-    xs = None
+
+    found_first_line, found_last_line = False, False
+    lx = 0
     for file_name in sorted(os.listdir(dir)):
         xf = None
 
@@ -52,15 +95,24 @@ def retrieve_countrs_intervals(dir):
         for contour in contours:
             #approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
             x, y, w, h = cv2.boundingRect(contour)
+            if x > 10 and not found_first_line:
+                continue
+            #(x1,y1,w1,h1), (x2,y2,w2,h2) = get_rects_to_checks(contour)
+            (x1,y1,w1,h1), (x2,y2,w2,h2) = (x,7,8,26), (x+w-8,7,8,26)
 
-            if is_plausible(x, y, w, h):
-                rect_map[file_name] = xf = x
+            #if is_plausible(x, y, w, h):
+            #    rect_map[file_name] = xf = x
+            rimg1, rimg2 = image[y1:y1+h1, x1:x1+w1], image[y2:y2+h2, x2:x2+w2]
+            if np.mean(rimg1) > 128 and x1 >= lx:
+                rect_map[file_name] = x1
+                lx = x1
+                found_first_line = True
 
-        if xf != None:
-            print(f"{file_index} __ {times_str}-> {xf}")
-            if xs == None or xf > xs + 10:
-                xs = xf
-                just_appended = True
+            elif np.mean(rimg2) > 128  and x2 >= lx:
+                rect_map[file_name] = x2
+                lx = x2
+                found_first_line = True
+
         # cv2.imwrite(output_file_name, thresh)
     return rect_map
 
@@ -104,10 +156,16 @@ if __name__ == '__main__':
             #for found_interval in found_intervals:
             #    print(found_interval)
             print(rect_map)
-            fmap, lmap = found_extremes_map(rect_map)
-            print(fmap)
-            print(lmap)
-            mvalue = max(rect_map.values())
-            for key, value in rect_map.items():
-                if value == -1:
-                    print(key, fmap.get(key,0), lmap.get(key,mvalue))
+            #fmap, lmap = found_extremes_map(rect_map)
+            #print(fmap)
+            #print(lmap)
+            #mvalue = max(rect_map.values())
+            #for key, value in rect_map.items():
+            #    if value == -1:
+            #        print(key, fmap.get(key,0), lmap.get(key,mvalue))
+            input_list = process_rect_map(rect_map)
+            output_list = [f"{input_list[i]}-{input_list[i+1]}" for i in range(len(input_list)-1)]
+
+            print(output_list)
+            for item in output_list:
+                print(item)
