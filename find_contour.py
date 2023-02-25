@@ -41,27 +41,31 @@ def process_rect_map(rect_map):
     first_index, last_index = 0, len(keys)-1
     for index, key in enumerate(keys):
         xx = rect_map[key]
+        file_name = key
+
+        basename_filename = os.path.basename(file_name)
+        basename_filename_no_ext = os.path.splitext(basename_filename)[0]
+        times = basename_filename_no_ext.split('_')[-3:]
+
+        if times[0] == '00':
+            times_str = f'{times[1]}:{times[2]}'
+        else:
+            times_str = f'{times[0]}:{times[1]}:{times[2]}'
         if index != first_index and index != last_index and xx == -1:
             continue
         if lx == 0 or xx > lx+ 5 or not first_start:
-            file_name = key
             if not first_start:
                 first_start = True
 
-            basename_filename = os.path.basename(file_name)
-            basename_filename_no_ext = os.path.splitext(basename_filename)[0]
-            times = basename_filename_no_ext.split('_')[-3:]
             file_index = int(basename_filename_no_ext.split('_')[0])
 
-            if times[0] == '00':
-                times_str = f'{times[1]}:{times[2]}'
-            else:
-                times_str = f'{times[0]}:{times[1]}:{times[2]}'
+
             print(times_str, xx, lx)
 
             times_strs.append(times_str)
         if xx != -1:
             lx = xx
+    times_strs.append(times_str)
     return times_strs
 
 def retrieve_countrs_intervals(dir):
@@ -93,6 +97,7 @@ def retrieve_countrs_intervals(dir):
         contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         rect_map[file_name] = -1
         # Loop over contours and draw them on the original image
+        vcs = []
         for contour in contours:
             #approx = cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
             x, y, w, h = cv2.boundingRect(contour)
@@ -104,16 +109,29 @@ def retrieve_countrs_intervals(dir):
             #if is_plausible(x, y, w, h):
             #    rect_map[file_name] = xf = x
             rimg1, rimg2 = image[y1:y1+h1, x1:x1+w1], image[y2:y2+h2, x2:x2+w2]
-            if np.mean(rimg1) > 128 and x1 >= lx:
-                rect_map[file_name] = x1
-                lx = x1
-                found_first_line = True
+            #print(f"Found Contour at {file_name}:{x1} with mean {np.mean(rimg1)}")
+            #print(f"Found Contour at {file_name}:{x2} with mean {np.mean(rimg2)}")
 
-            elif np.mean(rimg2) > 128  and x2 >= lx:
-                rect_map[file_name] = x2
-                lx = x2
-                found_first_line = True
+            if np.mean(rimg1) > 140 and x1 >= lx:
+                #print(f"Found Contour at {file_name}:{x1} with mean {np.mean(rimg1)}")
 
+                vcs.append((x1, np.mean(rimg1)))
+                #found_first_line = True
+
+            elif np.mean(rimg2) > 140 and x2 >= lx:
+                #print(f"Found Contour at {file_name}:{x2} with mean {np.mean(rimg2)}")
+
+                #rect_map[file_name] = x2
+                vcs.append((x2, np.mean(rimg2)))
+
+                #lx = x2
+                #found_first_line = True
+
+        vcss = sorted(vcs, key=lambda x: x[1], reverse=True)
+        if vcss:
+            lx = vcss[0][0]
+            found_first_line = True
+            rect_map[file_name] = lx
         # cv2.imwrite(output_file_name, thresh)
     return rect_map
 
@@ -133,6 +151,21 @@ def found_extremes_map(dmap):
                     fmap[run_key] = last_seen_value
     return fmap, lmap
 
+
+def save_intervals(input_dir, intervals_dir):
+    rect_map = retrieve_countrs_intervals(input_dir)
+    # print(found_intervals)
+    print(rect_map)
+    input_list = process_rect_map(rect_map)
+    output_list = [f"{input_list[i]}-{input_list[i + 1]}: XXXXXXXX\n" for i in range(len(input_list) - 1)]
+    os.makedirs(intervals_dir, exist_ok=True)
+    intervals_file = os.path.join(intervals_dir, 'intervals.txt')
+    with open(intervals_file, 'w') as f:
+        for item in output_list:
+            print(item)
+            f.write(item)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config')  # option that takes a value
@@ -148,25 +181,9 @@ if __name__ == '__main__':
             dest_folder = conf_info["dest_folder"]
             input_dir = conf_info.get("input_dir", None)
             contours_imgdir = conf_info.get("contours_dir", None)
+            intervals_dir = conf_info.get("intervals_dir", None)
+
             os.makedirs(contours_imgdir, exist_ok=True)
             #for dir_name in sorted(os.listdir(input_dir)):
 
-            rect_map = retrieve_countrs_intervals(input_dir)
-            #print(found_intervals)
-
-            #for found_interval in found_intervals:
-            #    print(found_interval)
-            print(rect_map)
-            #fmap, lmap = found_extremes_map(rect_map)
-            #print(fmap)
-            #print(lmap)
-            #mvalue = max(rect_map.values())
-            #for key, value in rect_map.items():
-            #    if value == -1:
-            #        print(key, fmap.get(key,0), lmap.get(key,mvalue))
-            input_list = process_rect_map(rect_map)
-            output_list = [f"{input_list[i]}-{input_list[i+1]}" for i in range(len(input_list)-1)]
-
-            print(output_list)
-            for item in output_list:
-                print(item)
+            save_intervals(input_dir, intervals_dir)
