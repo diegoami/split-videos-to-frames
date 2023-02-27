@@ -53,7 +53,7 @@ def process_rect_map(rect_map):
             times_str = f'{times[0]}:{times[1]}:{times[2]}'
         if index != first_index and index != last_index and xx == -1:
             continue
-        if lx == -1 or xx > lx + (index - li )or not first_start:
+        if lx == -1 or xx > lx + (index - li ) / 4 + 1  or not first_start:
             if not first_start:
                 first_start = True
 
@@ -183,7 +183,7 @@ if __name__ == '__main__':
             intervals_dir = conf_info.get("intervals_dir", None)
 
  #           os.makedirs(contours_imgdir, exist_ok=True)
-            for dir_name in sorted(os.listdir(input_dir)):
+            for dir_name in sorted(os.listdir(input_dir), key=lambda x: int(x.split('_')[0])):
                 input_dir_loop = os.path.join(input_dir, dir_name)
                 intervals_dir_loop = os.path.join(intervals_dir, dir_name)
 

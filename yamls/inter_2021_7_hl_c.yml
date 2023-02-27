@@ -1,0 +1,21 @@
+source_folder: "/media/diego/One Touch/videos/PLNP_nRm4k4jcMpk44vw_x0YgiDW606Duo/"
+dest_folder: "/media/diego/One Touch/frames_dates_test/PLNP_nRm4k4jcMpk44vw_x0YgiDW606Duo/3/"
+probability: 1000
+how_many: 6
+start: 0
+end: 1000
+first_last_imgdir: "/media/diego/One Touch/extreme_dates_test/PLNP_nRm4k4jcMpk44vw_x0YgiDW606Duo/3/"
+input_dir: "/media/diego/One Touch/frames_dates_test/PLNP_nRm4k4jcMpk44vw_x0YgiDW606Duo/3/"
+intervals_dir: "/media/diego/One Touch/intervals/PLNP_nRm4k4jcMpk44vw_x0YgiDW606Duo/3c/"
+grayscale: True
+resize_factor: 1
+cliprect:
+  left: 272
+  right: 1147
+  top: 8
+  bottom: 17
+linerect:
+  YY: 1
+  HH: 9
+  WW: 2
+
